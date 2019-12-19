@@ -9,11 +9,12 @@ import (
 
 type Client struct {
 	ip net.IP
+	port uint16
 	connected time.Time
 	name string
 }
 
-func newClient(ip string, name string) (*Client, error) {
+func newClient(ip string, port uint16, name string, created time.Time) (*Client, error) {
 	parsedIp := net.ParseIP(ip)
 	if parsedIp == nil {
 		return  nil, errors.New("invalid IP provided")
@@ -26,7 +27,8 @@ func newClient(ip string, name string) (*Client, error) {
 
 	c := new(Client)
 	c.ip = parsedIp
-	c.connected = time.Now()
+	c.port = port
+	c.connected = created
 	c.name = name
 
 	return c, nil
@@ -55,10 +57,12 @@ func (c *Client) Connected() time.Time {
 func (c *Client) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
 		Ip net.IP `json:"ip"`
+		Port uint16 `json:"port"`
 		Connected time.Time `json:"connected"`
 		Name string `json:"name"`
 	}{
 		Ip: c.ip,
+		Port: c.port,
 		Connected: c.connected,
 		Name: c.name,
 	})
