@@ -2,15 +2,77 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	uuid "github.com/satori/go.uuid"
 	"net/http"
 	"time"
 )
 
+const PORT = ":8181"
+
+type newClientRequest struct {
+	Ip string
+	Port uint16
+	Name string
+}
+
+var connectedClients map[uuid.UUID]*Client
+
 func main() {
-	http.HandleFunc("/clients", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		c, _ := newClient("192.168.1.1", 8181, "Sample client", time.Now())
-		json.NewEncoder(w).Encode(c)
-	})
-	_ = http.ListenAndServe(":8181", nil)
+	connectedClients = make(map[uuid.UUID]*Client)
+
+	http.HandleFunc("/clients", returnConnectedClients())
+	http.HandleFunc("/client", addNewClient())
+
+	fmt.Printf("\n Server listening on: http://127.0.0.1%v \n", PORT)
+
+	_ = http.ListenAndServe(PORT, nil)
+}
+
+func addNewClient() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			http.Error(w, "unsupported method", 404)
+		}
+
+		clientRequest := newClientRequest{}
+		err := json.NewDecoder(r.Body).Decode(&clientRequest)
+		if err != nil {
+			http.Error(w, "failed to parse request body", 400)
+		}
+
+		client, err := newClient(clientRequest.Ip, clientRequest.Port, clientRequest.Name, time.Now())
+		if err != nil {
+			http.Error(w, err.Error(), 400)
+		}
+		if client == nil {
+			http.Error(w, "failed to parse request body", 400)
+		}
+
+		connectedClients[client.Id()] = client
+		writeConnectedClients(w)
+	}
+}
+
+func returnConnectedClients() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			http.Error(w, "unsupported method", 404)
+		}
+
+		writeConnectedClients(w)
+	}
+}
+
+func writeConnectedClients(w http.ResponseWriter) {
+	w.Header().Set("Content-Type","application/json")
+	w.WriteHeader(http.StatusOK)
+
+	responseData, err := json.Marshal(connectedClients)
+	if err != nil {
+		http.Error(w, "failed to retrieve response data", 500)
+	}
+
+	//Write json response back to response
+	w.Write(responseData)
 }

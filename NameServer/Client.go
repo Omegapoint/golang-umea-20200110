@@ -3,11 +3,13 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	uuid "github.com/satori/go.uuid"
 	"net"
 	"time"
 )
 
 type Client struct {
+	id uuid.UUID
 	ip net.IP
 	port uint16
 	connected time.Time
@@ -26,6 +28,9 @@ func newClient(ip string, port uint16, name string, created time.Time) (*Client,
 	}
 
 	c := new(Client)
+
+	id, _ := uuid.NewV4()
+	c.id = id
 	c.ip = parsedIp
 	c.port = port
 	c.connected = created
@@ -50,8 +55,20 @@ func (c *Client) Ip() net.IP {
 	return c.ip
 }
 
+func (c *Client) Port() uint16 {
+	return c.port
+}
+
 func (c *Client) Connected() time.Time {
 	return c.connected
+}
+
+func (c *Client) Name() string {
+	return c.name
+}
+
+func (c *Client) Id() uuid.UUID {
+	return c.id
 }
 
 func (c *Client) MarshalJSON() ([]byte, error) {
