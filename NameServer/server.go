@@ -35,16 +35,19 @@ func main() {
 }
 
 func cleanup() {
-	var keysToDelete []uuid.UUID
 
 	for {
 		time.Sleep(FIVE_MINUTES)
+
+		var keysToDelete []uuid.UUID
 		currentTime := time.Now()
+
 		for  key, client := range connectedClients {
 			if currentTime.After(client.Connected().Add(FIVE_MINUTES)) {
 				keysToDelete = append(keysToDelete, key)
 			}
 		}
+
 		mu.Lock()
 		for _, key  := range keysToDelete {
 			delete(connectedClients, key)
