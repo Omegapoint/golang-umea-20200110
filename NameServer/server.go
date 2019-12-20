@@ -5,10 +5,12 @@ import (
 	"fmt"
 	uuid "github.com/satori/go.uuid"
 	"net/http"
+	"sync"
 	"time"
 )
 
 const PORT = ":8181"
+const FIVE_MINUTES = time.Minute * 5
 
 type newClientRequest struct {
 	Ip string
@@ -16,6 +18,7 @@ type newClientRequest struct {
 	Name string
 }
 
+var mu sync.Mutex
 var connectedClients map[uuid.UUID]*Client
 
 func main() {
@@ -24,9 +27,30 @@ func main() {
 	http.HandleFunc("/clients", returnConnectedClients())
 	http.HandleFunc("/client", addNewClient())
 
+	go cleanup()
+
 	fmt.Printf("\n Server listening on: http://127.0.0.1%v \n", PORT)
 
 	_ = http.ListenAndServe(PORT, nil)
+}
+
+func cleanup() {
+	var keysToDelete []uuid.UUID
+
+	for {
+		time.Sleep(FIVE_MINUTES)
+		currentTime := time.Now()
+		for  key, client := range connectedClients {
+			if currentTime.After(client.Connected().Add(FIVE_MINUTES)) {
+				keysToDelete = append(keysToDelete, key)
+			}
+		}
+		mu.Lock()
+		for _, key  := range keysToDelete {
+			delete(connectedClients, key)
+		}
+		mu.Unlock()
+	}
 }
 
 func addNewClient() func(w http.ResponseWriter, r *http.Request) {
