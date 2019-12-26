@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/Omegapoint/golang-umea-20200110/Protocol"
 	uuid "github.com/satori/go.uuid"
 	"net/http"
 	"sync"
@@ -19,10 +20,10 @@ type newClientRequest struct {
 }
 
 var mu sync.Mutex
-var connectedClients map[uuid.UUID]*Client
+var connectedClients map[uuid.UUID]*Protocol.Client
 
 func main() {
-	connectedClients = make(map[uuid.UUID]*Client)
+	connectedClients = make(map[uuid.UUID]*Protocol.Client)
 
 	http.HandleFunc("/clients", returnConnectedClients())
 	http.HandleFunc("/client", addNewClient())
@@ -68,7 +69,7 @@ func addNewClient() func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "failed to parse request body", 400)
 		}
 
-		client, err := newClient(clientRequest.Ip, clientRequest.Port, clientRequest.Name, time.Now())
+		client, err := Protocol.NewClient(clientRequest.Ip, clientRequest.Port, clientRequest.Name, time.Now())
 		if err != nil {
 			http.Error(w, err.Error(), 400)
 		}

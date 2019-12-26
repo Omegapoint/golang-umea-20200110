@@ -1,4 +1,4 @@
-package main
+package Protocol
 
 import (
 	"encoding/json"
@@ -16,7 +16,7 @@ type Client struct {
 	name string
 }
 
-func newClient(ip string, port uint16, name string, created time.Time) (*Client, error) {
+func NewClient(ip string, port uint16, name string, created time.Time) (*Client, error) {
 	parsedIp := net.ParseIP(ip)
 	if parsedIp == nil {
 		return  nil, errors.New("invalid IP provided")
