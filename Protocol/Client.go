@@ -71,6 +71,10 @@ func (c *Client) Id() uuid.UUID {
 	return c.id
 }
 
+func (c *Client) UpdateConnected(t time.Time) {
+	c.connected = t
+}
+
 func (c *Client) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
 		Ip net.IP `json:"ip"`
