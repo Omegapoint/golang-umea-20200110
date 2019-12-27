@@ -1,0 +1,6 @@
+{
+  "port": 8282,
+  "name": "linus",
+  "nameServerPort": 8181,
+  "nameServerIp": "127.0.0.1"
+}
