@@ -24,16 +24,21 @@ func getConfig() config {
 	return readConfigFile()
 }
 
+var localIp net.IP
 func getLocalIp() (net.IP, error) {
+	if localIp != nil {
+		return localIp, nil
+	}
+
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
 		return nil, err
 	}
 
 	for _, address := range addrs {
-		if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			if ipnet.IP.To4() != nil {
-				return ipnet.IP, nil
+		if inet, ok := address.(*net.IPNet); ok && !inet.IP.IsLoopback() {
+			if inet.IP.To4() != nil {
+				return inet.IP, nil
 			}
 		}
 	}
