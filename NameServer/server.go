@@ -110,7 +110,7 @@ func updateClient(w http.ResponseWriter, r *http.Request) {
 	}
 
 	client.UpdateConnected(time.Now())
-	fmt.Fprintf(os.Stdout, "updated connecton to client: %s", client.Id())
+	fmt.Fprintf(os.Stdout, "updated connecton to client: %s\n", client.Id())
 	writeConnectedClients(w)
 }
 
@@ -140,7 +140,11 @@ func writeId(w http.ResponseWriter, id uuid.UUID) {
 	w.Header().Set("Content-Type","application/json")
 	w.WriteHeader(http.StatusOK)
 
-	responseData, err := json.Marshal(fmt.Sprintf(`{"id": "%s"}`, id.String()))
+	responseData, err := json.Marshal(&struct {
+		Id uuid.UUID `json:"id"`
+	}{
+		Id: id,
+	})
 	if err != nil {
 		http.Error(w, "failed to retrieve response data", 500)
 	}
