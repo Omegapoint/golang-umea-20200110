@@ -64,9 +64,9 @@ func cleanup() {
 
 func client(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
-	case "POST":
+	case http.MethodPost:
 		addNewClient(w, r)
-	case "PATCH":
+	case http.MethodPatch:
 		updateClient(w, r)
 	default:
 		http.Error(w, "usupported method", 404)
