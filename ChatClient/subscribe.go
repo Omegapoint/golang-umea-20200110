@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/Omegapoint/golang-umea-20200110/Protocol"
 	uuid "github.com/satori/go.uuid"
 	"io/ioutil"
 	"net/http"
@@ -77,26 +76,13 @@ func parseIdResponse(resp *http.Response) uuid.UUID {
 
 func updateSubscription(nameServerUrl string, channel chan ClientMap, id uuid.UUID) {
 	for true {
-		updatedClients := makeUpdateRequest(nameServerUrl, id)
-		filterOutLocalClients(id, updatedClients)
-		channel <- updatedClients
+		channel <- makeUpdateRequest(nameServerUrl, id)
 		time.Sleep(time.Minute)
 	}
 }
 
-func filterOutLocalClients(id uuid.UUID, updatedClients ClientMap) []Protocol.Client {
-	var activeClients []Protocol.Client
-	for clientId, client := range updatedClients {
-		if clientId != id {
-			activeClients = append(activeClients, client)
-		}
-	}
-	return activeClients
-}
-
 func makeUpdateRequest(nameServerUrl string, id uuid.UUID) ClientMap {
-	jsonStr := fmt.Sprintf(`{"id": "%s"}`, id.String())
-	reqBody := []byte(jsonStr)
+	reqBody := []byte(fmt.Sprintf(`{"id": "%s"}`, id.String()))
 	req, _ := http.NewRequest(http.MethodPatch, nameServerUrl, bytes.NewBuffer(reqBody))
 	req.Header.Set("Content-Type", "application/json")
 
