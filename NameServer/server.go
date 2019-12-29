@@ -25,10 +25,12 @@ type updateClientRequest struct {
 }
 
 var mu sync.Mutex
-var connectedClients map[uuid.UUID]*Protocol.Client
+var connectedClients ClientMap
+
+type ClientMap = map[uuid.UUID]*Protocol.Client
 
 func main() {
-	connectedClients = make(map[uuid.UUID]*Protocol.Client)
+	connectedClients = make(ClientMap)
 
 	http.HandleFunc("/clients", returnConnectedClients())
 	http.HandleFunc("/client", client)
