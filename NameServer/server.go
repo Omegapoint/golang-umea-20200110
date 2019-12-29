@@ -6,6 +6,7 @@ import (
 	"github.com/Omegapoint/golang-umea-20200110/Protocol"
 	uuid "github.com/satori/go.uuid"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 )
@@ -88,6 +89,7 @@ func addNewClient(w http.ResponseWriter, r *http.Request) {
 	}
 
 	connectedClients[client.Id()] = client
+	_, _ = fmt.Fprintf(os.Stdout, "registered client: %s with name: %s \n", client.Id(), client.Name())
 	writeConnectedClients(w)
 }
 
@@ -105,6 +107,7 @@ func updateClient(w http.ResponseWriter, r *http.Request) {
 	}
 
 	client.UpdateConnected(time.Now())
+	fmt.Fprintf(os.Stdout, "updated connecton to client: %s", client.Id())
 	writeConnectedClients(w)
 }
 
