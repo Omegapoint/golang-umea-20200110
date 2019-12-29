@@ -92,7 +92,7 @@ func addNewClient(w http.ResponseWriter, r *http.Request) {
 
 	connectedClients[client.Id()] = client
 	_, _ = fmt.Fprintf(os.Stdout, "registered client: %s with name: %s \n", client.Id(), client.Name())
-	writeConnectedClients(w)
+	writeId(w, client.Id())
 }
 
 func updateClient(w http.ResponseWriter, r *http.Request) {
@@ -100,6 +100,7 @@ func updateClient(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&updateRequest)
 	if err != nil {
 		http.Error(w, "failed to parse request body", 400)
+		return
 	}
 
 	client := connectedClients[updateRequest.Id]
@@ -132,6 +133,17 @@ func writeConnectedClients(w http.ResponseWriter) {
 		http.Error(w, "failed to retrieve response data", 500)
 	}
 
-	//Write json response back to response
+	w.Write(responseData)
+}
+
+func writeId(w http.ResponseWriter, id uuid.UUID) {
+	w.Header().Set("Content-Type","application/json")
+	w.WriteHeader(http.StatusOK)
+
+	responseData, err := json.Marshal(fmt.Sprintf(`{"id": "%s"}`, id.String()))
+	if err != nil {
+		http.Error(w, "failed to retrieve response data", 500)
+	}
+
 	w.Write(responseData)
 }

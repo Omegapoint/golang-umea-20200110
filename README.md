@@ -58,18 +58,7 @@ Example response:
 
 ```
 {
-    "82b5268c-8231-4563-9c26-be27ea7a7abe": {
-        "ip": "192.1.1.1",
-        "port": 1234,
-        "connected": "2019-12-19T21:20:49.49786+01:00",
-        "name": "linus"
-    },
-    "b79534f4-810b-454a-a52e-fd4b098dca7a": {
-        "ip": "192.1.1.1",
-        "port": 1234,
-        "connected": "2019-12-19T21:21:02.306181+01:00",
-        "name": "linus"
-    }
+   "id": "f2ab3b6e-3284-49d4-b856-8e0939270566"
 }
 ```
 
@@ -78,13 +67,13 @@ Example response:
 `PATCH/client`
 
 Tells the name server that this client is still connected and updates the 
-connected timestamp.     
+connected timestamp.
 
-Example request body:
+Example request:
 
 ```
 {
-    "id": "b79534f4-810b-454a-a52e-fd4b098dca7a"
+    "id": "fc72368b-1f51-455b-81fc-0421fdf8666a"
 }
 ```
 
