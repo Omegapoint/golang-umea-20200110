@@ -16,7 +16,7 @@ type Client struct {
 	name string
 }
 
-func NewClient(ip string, port uint16, name string, created time.Time) (*Client, error) {
+func NewClient(id uuid.UUID, ip string, port uint16, name string, created time.Time) (*Client, error) {
 	parsedIp := net.ParseIP(ip)
 	if parsedIp == nil {
 		return  nil, errors.New("invalid IP provided")
@@ -29,7 +29,6 @@ func NewClient(ip string, port uint16, name string, created time.Time) (*Client,
 
 	c := new(Client)
 
-	id, _ := uuid.NewV4()
 	c.id = id
 	c.ip = parsedIp
 	c.port = port

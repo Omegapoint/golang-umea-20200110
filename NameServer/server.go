@@ -82,7 +82,8 @@ func addNewClient(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "failed to parse request body", 400)
 	}
 
-	client, err := Protocol.NewClient(clientRequest.Ip, clientRequest.Port, clientRequest.Name, time.Now())
+	id, _ := uuid.NewV4()
+	client, err := Protocol.NewClient(id, clientRequest.Ip, clientRequest.Port, clientRequest.Name, time.Now())
 	if err != nil {
 		http.Error(w, err.Error(), 400)
 	}

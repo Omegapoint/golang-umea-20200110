@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/Omegapoint/golang-umea-20200110/Protocol"
 	uuid "github.com/satori/go.uuid"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -54,8 +56,22 @@ func parseResponse(resp *http.Response) ClientMap {
 		os.Exit(1)
 	}
 
-	var clients ClientMap
-	_ = json.Unmarshal(body, &clients)
+	var tmpClietns map[uuid.UUID]struct {
+		Ip net.IP `json:"ip"`
+		Port uint16 `json:"port"`
+		Name string `json:"name"`
+		Connected time.Time `json:"connected"`
+	}
+
+	_ = json.Unmarshal(body, &tmpClietns)
+
+
+	clients := make(ClientMap)
+	for id, c :=  range tmpClietns {
+		client, _ := Protocol.NewClient(id, c.Ip.String(), c.Port, c.Name, c.Connected)
+		clients[id] = *client
+	}
+
 	return clients
 }
 
