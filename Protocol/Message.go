@@ -8,16 +8,16 @@ import (
 
 type Message struct {
 	Id uuid.UUID
-	sent time.Time
-	message string
+	Sent time.Time
+	Message string
 }
 
 func NewMessage(id uuid.UUID, msg string) *Message {
 	message := new(Message)
 
 	message.Id = id
-	message.message = msg
-	message.sent = time.Now()
+	message.Message = msg
+	message.Sent = time.Now()
 
 	return message
 }
