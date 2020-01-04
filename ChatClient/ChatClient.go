@@ -18,12 +18,12 @@ func main() {
 	conf := getConfig()
 	fmt.Printf("Using config: %v\n", conf)
 
-	subscription := subscribe(conf)
+	subscription, clientId := subscribe(conf)
 	fmt.Printf("successfully connected to name server at: %s:%v\n", conf.NameServerIp, conf.NameServerPort)
 
 	clientMessages := make(chan string)
 	go userMessageRPLoop(clientMessages)
-	handleClientBroadcast(subscription, clientMessages)
+	handleClientBroadcast(clientId, subscription, clientMessages)
 }
 
 // userMessageRPLoop reads messages from the user and prints them to stdout as well as writing
@@ -47,16 +47,20 @@ func userMessageRPLoop(messages chan string) {
 // and all messages entered by the user will be received through the channel `userMessages`.
 // When messages are received from the channel, this method is responsible for broadcasting
 // these to all the outgoing clients.
-func handleClientBroadcast(subscription chan ClientMap, userMessages chan string) {
+func handleClientBroadcast(clientId uuid.UUID, subscription chan ClientMap, userMessages chan string) {
 	connections := make(ConnectionMap)
 
 	go manageClientConnections(subscription, connections)
-	handleBroadcast(userMessages)
+	go handleBroadcast(clientId, userMessages, connections)
 }
 
-func handleBroadcast(userMessages chan string) {
+func handleBroadcast(clientId uuid.UUID, userMessages chan string, connections ConnectionMap) {
 	for true {
-		<-userMessages
+		msg := <- userMessages
+		message, _ := Protocol.NewMessage(clientId, msg).Serialize()
+		for _, conn := range connections {
+			_, _ = conn.Write(message)
+		}
 	}
 }
 

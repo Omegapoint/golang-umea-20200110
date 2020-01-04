@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func subscribe(conf config) chan ClientMap {
+func subscribe(conf config) (chan ClientMap, uuid.UUID) {
 	ip, err := getLocalIp()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to retreive local ip: %v\n", err)
@@ -46,7 +46,7 @@ func subscribe(conf config) chan ClientMap {
 
 	subscription := make(chan ClientMap)
 	go updateSubscription(registerUrl, subscription, clientId)
-	return subscription
+	return subscription, clientId
 }
 
 func parseResponse(resp *http.Response) ClientMap {
