@@ -21,9 +21,12 @@ func main() {
 	subscription, clientId := subscribe(conf)
 	fmt.Printf("successfully connected to name server at: %s:%v\n", conf.NameServerIp, conf.NameServerPort)
 
-	clientMessages := make(chan string)
-	go userMessageRPLoop(clientMessages)
-	handleClientBroadcast(clientId, subscription, clientMessages)
+	userMessages := make(chan string)
+	go userMessageRPLoop(userMessages)
+
+	connections := make(ConnectionMap)
+	go manageClientConnections(subscription, connections)
+	go handleBroadcast(clientId, userMessages, connections)
 }
 
 // userMessageRPLoop reads messages from the user and prints them to stdout as well as writing
@@ -42,18 +45,10 @@ func userMessageRPLoop(messages chan string) {
 	}
 }
 
-// handleClientBroadcast is responsible for managing outgoing connections to other clients
-// it receives connected clients from the name server through the channel `subscription`
-// and all messages entered by the user will be received through the channel `userMessages`.
-// When messages are received from the channel, this method is responsible for broadcasting
-// these to all the outgoing clients.
-func handleClientBroadcast(clientId uuid.UUID, subscription chan ClientMap, userMessages chan string) {
-	connections := make(ConnectionMap)
 
-	go manageClientConnections(subscription, connections)
-	go handleBroadcast(clientId, userMessages, connections)
-}
-
+// handleClientBroadcast is responsible for broadcasting messages received from the user to
+// all the connected clients. The messages from the user is received through `userMessages`
+// and `connections` contains all the active connections to outgoing clients
 func handleBroadcast(clientId uuid.UUID, userMessages chan string, connections ConnectionMap) {
 	for true {
 		msg := <- userMessages
@@ -64,6 +59,9 @@ func handleBroadcast(clientId uuid.UUID, userMessages chan string, connections C
 	}
 }
 
+// manageClientConnections is responsible for managing outgoing connections to other chat clients
+// the connected clients is received from the name server through `subscription` and the active
+// connections will be stored in `connections`.
 func manageClientConnections(subscription chan ClientMap, connections ConnectionMap) {
 	for true {
 		clients := <-subscription
