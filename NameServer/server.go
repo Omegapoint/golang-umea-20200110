@@ -12,7 +12,7 @@ import (
 )
 
 const PORT = ":8181"
-const FIVE_MINUTES = time.Minute * 5
+const FIVE_SECONDS = time.Second * 5
 
 type newClientRequest struct {
 	Ip string
@@ -45,13 +45,13 @@ func main() {
 func cleanup() {
 
 	for {
-		time.Sleep(FIVE_MINUTES)
+		time.Sleep(FIVE_SECONDS)
 
 		var keysToDelete []uuid.UUID
 		currentTime := time.Now()
 
 		for  key, client := range connectedClients {
-			if currentTime.After(client.Connected().Add(FIVE_MINUTES)) {
+			if currentTime.After(client.Connected().Add(FIVE_SECONDS)) {
 				keysToDelete = append(keysToDelete, key)
 			}
 		}

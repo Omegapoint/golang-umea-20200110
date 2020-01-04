@@ -93,7 +93,7 @@ func parseIdResponse(resp *http.Response) uuid.UUID {
 func updateSubscription(nameServerUrl string, channel chan ClientMap, id uuid.UUID) {
 	for true {
 		channel <- makeUpdateRequest(nameServerUrl, id)
-		time.Sleep(time.Minute)
+		time.Sleep(time.Second)
 	}
 }
 

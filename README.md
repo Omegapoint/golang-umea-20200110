@@ -10,8 +10,8 @@ This section describes how to integrate with the system
 Holds an index of registered clients. Supported operations are currently: list clients, register client.
 When a client is registered it is instantly added to the index. I.e. after a client is added to the index it will
 instantly be present in the list of clients. Connected clients will have to continuously update their status.
-Every five minute, the index is pruned and clients with a connected time > 5min will be removed from the index.
-I.e. clients will have to periodically, with interval < 5min, register themselves again. A clients presence in the
+Every five seconds, the index is pruned and clients with a connected time > 5sec will be removed from the index.
+I.e. clients will have to periodically, with interval < 5sec, update their status again. A clients presence in the
 list is no guarantee that it will be possible to connect to it.
 
 ---
