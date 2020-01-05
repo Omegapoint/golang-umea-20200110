@@ -1,13 +1,10 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/Omegapoint/golang-umea-20200110/Protocol"
 	uuid "github.com/satori/go.uuid"
 	"net"
-	"os"
-	"strconv"
 )
 
 type ClientMap = map[uuid.UUID]Protocol.Client
@@ -41,48 +38,7 @@ func main() {
 // that other clients will use when trying to connect to this client. The argument `clients` contains
 // all outgoing connections from this client.
 func receiveMessages(conf config, clients ConnectionMap) {
-	tcpAddr, _ := net.ResolveTCPAddr("tcp4", ":" + strconv.FormatUint(uint64(conf.Port), 10))
-	listener, err := net.ListenTCP("tcp", tcpAddr)
-	if err != nil {
-		printErrorMessage(fmt.Sprintf("failed to listen for incomming connections: %v\n", err))
-		os.Exit(1)
-	}
-
-	for {
-		conn, err := listener.Accept()
-		if err != nil {
-			continue
-		}
-
-		go handleClient(conn, clients)
-	}
-}
-
-func handleClient(conn net.Conn, clients ConnectionMap) {
-	defer conn.Close()
-
-	request := make([]byte, 2048)
-	var message Protocol.Message
-	clientName := ""
-	for {
-		size, err := conn.Read(request)
-		if err != nil {
-			printInfoMessage(fmt.Sprintf("'%s' disconnected", clientName))
-			return
-		}
-		err = json.Unmarshal(request[:size], &message)
-
-		if clientName == "" {
-			client := clients[message.Id]
-			if client == nil {
-				printInfoMessage("disconnected misbehaving client")
-				return
-			}
-			clientName = client.Name
-		}
-
-		printChatMessage(message.Message, clientName, false)
-	}
+	fmt.Println("unimplemented method: receiveMessage")
 }
 
 
@@ -90,48 +46,14 @@ func handleClient(conn net.Conn, clients ConnectionMap) {
 // all the connected clients. The messages from the user is received through `userMessages`
 // and `connections` contains all the active connections to outgoing clients
 func handleBroadcast(clientId uuid.UUID, userMessages chan string, connections ConnectionMap) {
-	for {
-		msg := <- userMessages
-		message, _ := Protocol.NewMessage(clientId, msg).Serialize()
-		for _, conn := range connections {
-			_, _ = conn.Conn.Write(message)
-		}
-	}
+	fmt.Println("unimplemented method: handleBroadcast")
 }
 
 // manageClientConnections is responsible for managing outgoing connections to other chat clients
 // the connected clients is received from the name server through `subscription` and the active
 // connections will be stored in `connections`.
 func manageClientConnections(subscription chan ClientMap, connections ConnectionMap) {
-	for {
-		clients := <-subscription
-		for id, client := range clients {
-			if connections[id] != nil {
-				continue
-			}
-
-			ip := client.Ip().String() + ":" + strconv.FormatUint(uint64(client.Port()), 10)
-			addr, err := net.ResolveTCPAddr("tcp4", ip)
-			if err != nil {
-				printErrorMessage(fmt.Sprintf("unable to resolve tcp address: %v\n", err))
-				continue
-			}
-
-			conn, err := net.DialTCP("tcp", nil, addr)
-			if err != nil {
-				printErrorMessage(fmt.Sprintf("unable to establish connection: %v\n", err))
-				continue
-			}
-
-			printInfoMessage(fmt.Sprintf("'%s' connected", client.Name()))
-
-			connection := clientConnection{
-				Name: client.Name(),
-				Conn: conn,
-			}
-			connections[id] = &connection
-		}
-	}
+	fmt.Println("unimplemented method: manageClientConnections")
 }
 
 
