@@ -21,9 +21,10 @@ func main() {
 	printJumboMessage("GoChat")
 
 	conf := getConfig()
+	fmt.Println()
 	printInfoMessage(fmt.Sprintf("Using config: %v", conf))
 
-	subscription, clientId := subscribe(conf)
+	subscription, clientId := subscribeToNameServer(conf)
 	printInfoMessage(fmt.Sprintf("successfully connected to name server at: %s:%v\n", conf.NameServerIp, conf.NameServerPort))
 
 	userMessages := make(chan string)
@@ -118,7 +119,7 @@ func manageClientConnections(subscription chan ClientMap, connections Connection
 				continue
 			}
 
-			printInfoMessage(fmt.Sprintf("client '%s' connected", client.Name()))
+			printInfoMessage(fmt.Sprintf("'%s' connected", client.Name()))
 
 			connection := clientConnection{
 				Name: client.Name(),

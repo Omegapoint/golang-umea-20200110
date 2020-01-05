@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func subscribe(conf config) (chan ClientMap, uuid.UUID) {
+func subscribeToNameServer(conf config) (chan ClientMap, uuid.UUID) {
 	ip, err := getLocalIp()
 	if err != nil {
 		printErrorMessage(fmt.Sprintf("failed to retreive local ip: %v\n", err))
