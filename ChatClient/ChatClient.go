@@ -21,7 +21,7 @@ func main() {
 	printJumboMessage("GoChat")
 
 	conf := getConfig()
-	printInfoMessage(fmt.Sprintf("\n\nUsing config: %v\n", conf))
+	printInfoMessage(fmt.Sprintf("Using config: %v", conf))
 
 	subscription, clientId := subscribe(conf)
 	printInfoMessage(fmt.Sprintf("successfully connected to name server at: %s:%v\n", conf.NameServerIp, conf.NameServerPort))
@@ -58,16 +58,25 @@ func handleClient(conn net.Conn, clients ConnectionMap) {
 
 	request := make([]byte, 2048)
 	var message Protocol.Message
-	var client clientConnection
+	clientName := ""
 	for {
 		size, err := conn.Read(request)
 		if err != nil {
-			printInfoMessage(fmt.Sprintf("'%s' disconnected", client.Name))
+			printInfoMessage(fmt.Sprintf("'%s' disconnected", clientName))
 			return
 		}
 		err = json.Unmarshal(request[:size], &message)
 
-		printChatMessage(message.Message, client.Name, false)
+		if clientName == "" {
+			client := clients[message.Id]
+			if client == nil {
+				printInfoMessage("disconnected misbehaving client")
+				return
+			}
+			clientName = client.Name
+		}
+
+		printChatMessage(message.Message, clientName, false)
 	}
 }
 
