@@ -49,7 +49,7 @@ func subscribe(conf config) (chan ClientMap, uuid.UUID) {
 	return subscription, clientId
 }
 
-func parseResponse(resp *http.Response) ClientMap {
+func parseResponse(resp *http.Response, clientId uuid.UUID) ClientMap {
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "failed to read response: %v\n", err)
@@ -68,6 +68,9 @@ func parseResponse(resp *http.Response) ClientMap {
 
 	clients := make(ClientMap)
 	for id, c :=  range tmpClietns {
+		if id.String() == clientId.String() {
+			continue
+		}
 		client, _ := Protocol.NewClient(id, c.Ip.String(), c.Port, c.Name, c.Connected)
 		clients[id] = *client
 	}
@@ -110,5 +113,5 @@ func makeUpdateRequest(nameServerUrl string, id uuid.UUID) ClientMap {
 	}
 	defer resp.Body.Close()
 
-	return parseResponse(resp)
+	return parseResponse(resp, id)
 }
