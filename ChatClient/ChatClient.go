@@ -36,6 +36,10 @@ func main() {
 	receiveMessages(conf, connections)
 }
 
+// receiveMessages handles the receiving of messages from other clients and writing them to the user.
+// `config` contains the config information that this client presented to the name server, i.e. the info
+// that other clients will use when trying to connect to this client. The argument `clients` contains
+// all outgoing connections from this client.
 func receiveMessages(conf config, clients ConnectionMap) {
 	tcpAddr, _ := net.ResolveTCPAddr("tcp4", ":" + strconv.FormatUint(uint64(conf.Port), 10))
 	listener, err := net.ListenTCP("tcp", tcpAddr)

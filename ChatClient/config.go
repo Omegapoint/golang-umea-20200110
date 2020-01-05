@@ -69,7 +69,7 @@ func readConfigFromStdin() config {
 	fmt.Print("What is your name: ")
 	name, _ := reader.ReadString('\n')
 
-	fmt.Print("What port to use: ")
+	fmt.Print("What port bind this client to: ")
 	port, _ := reader.ReadString('\n')
 
 	numericPort, err := strconv.ParseUint(strings.TrimSpace(port), 10, 16)
