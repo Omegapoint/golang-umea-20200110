@@ -17,7 +17,7 @@ import (
 func subscribe(conf config) (chan ClientMap, uuid.UUID) {
 	ip, err := getLocalIp()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to retreive local ip: %v\n", err)
+		printErrorMessage(fmt.Sprintf("failed to retreive local ip: %v\n", err))
 		os.Exit(1)
 	}
 
@@ -27,7 +27,7 @@ func subscribe(conf config) (chan ClientMap, uuid.UUID) {
 		"name": conf.Name,
 	})
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to create request: %v\n", err)
+		printErrorMessage(fmt.Sprintf("failed to create request: %v\n", err))
 		os.Exit(1)
 	}
 
@@ -37,7 +37,7 @@ func subscribe(conf config) (chan ClientMap, uuid.UUID) {
 	resp, err := http.Post(registerUrl,
 		"application/json", bytes.NewBuffer(reqBody))
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to register client: %v\n", err)
+		printErrorMessage(fmt.Sprintf("failed to register client: %v\n", err))
 		os.Exit(1)
 	}
 
@@ -52,7 +52,7 @@ func subscribe(conf config) (chan ClientMap, uuid.UUID) {
 func parseResponse(resp *http.Response, clientId uuid.UUID) ClientMap {
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to read response: %v\n", err)
+		printErrorMessage(fmt.Sprintf("failed to read response: %v\n", err))
 		os.Exit(1)
 	}
 
@@ -81,7 +81,7 @@ func parseResponse(resp *http.Response, clientId uuid.UUID) ClientMap {
 func parseIdResponse(resp *http.Response) uuid.UUID {
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "failed to read response: %v\n", err)
+		printErrorMessage(fmt.Sprintf("failed to read response: %v\n", err))
 		os.Exit(1)
 	}
 
@@ -108,7 +108,7 @@ func makeUpdateRequest(nameServerUrl string, id uuid.UUID) ClientMap {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "lost connection to name server: %v\n", err)
+		printErrorMessage(fmt.Sprintf("lost connection to name server: %v\n", err))
 		return nil
 	}
 	defer resp.Body.Close()

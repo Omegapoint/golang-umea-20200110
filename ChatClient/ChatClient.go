@@ -1,25 +1,30 @@
 package main
 
 import (
-	"bufio"
+	"encoding/json"
 	"fmt"
 	"github.com/Omegapoint/golang-umea-20200110/Protocol"
 	uuid "github.com/satori/go.uuid"
 	"net"
 	"os"
 	"strconv"
-	"time"
 )
 
 type ClientMap = map[uuid.UUID]Protocol.Client
-type ConnectionMap = map[uuid.UUID]*net.TCPConn
+type clientConnection struct {
+	Name string
+	Conn *net.TCPConn
+}
+type ConnectionMap = map[uuid.UUID]*clientConnection
 
 func main() {
+	printJumboMessage("GoChat")
+
 	conf := getConfig()
-	fmt.Printf("Using config: %v\n", conf)
+	printInfoMessage(fmt.Sprintf("\n\nUsing config: %v\n", conf))
 
 	subscription, clientId := subscribe(conf)
-	fmt.Printf("successfully connected to name server at: %s:%v\n", conf.NameServerIp, conf.NameServerPort)
+	printInfoMessage(fmt.Sprintf("successfully connected to name server at: %s:%v\n", conf.NameServerIp, conf.NameServerPort))
 
 	userMessages := make(chan string)
 	go userMessageRPLoop(userMessages)
@@ -27,21 +32,42 @@ func main() {
 	connections := make(ConnectionMap)
 	go manageClientConnections(subscription, connections)
 	go handleBroadcast(clientId, userMessages, connections)
+	receiveMessages(conf, connections)
 }
 
-// userMessageRPLoop reads messages from the user and prints them to stdout as well as writing
-// them to the provided channel.
-func userMessageRPLoop(messages chan string) {
-	fmt.Printf("\n\n=============================================\n")
-	reader := bufio.NewReader(os.Stdin)
-	var message string
-	for true {
-		fmt.Print("Say something: ")
-		message, _ = reader.ReadString('\n')
-		fmt.Printf("\033[1A")
-		fmt.Printf("\033[K")
-		fmt.Printf("\033[0;37m[%v]\033[0m \033[0;31m%s\033[0m: %s\n", time.Now().Format("2006-01-02 15:04:05"), "me", message)
-		messages <- message
+func receiveMessages(conf config, clients ConnectionMap) {
+	tcpAddr, _ := net.ResolveTCPAddr("tcp4", ":" + strconv.FormatUint(uint64(conf.Port), 10))
+	listener, err := net.ListenTCP("tcp", tcpAddr)
+	if err != nil {
+		printErrorMessage(fmt.Sprintf("failed to listen for incomming connections: %v\n", err))
+		os.Exit(1)
+	}
+
+	for {
+		conn, err := listener.Accept()
+		if err != nil {
+			continue
+		}
+
+		go handleClient(conn, clients)
+	}
+}
+
+func handleClient(conn net.Conn, clients ConnectionMap) {
+	defer conn.Close()
+
+	request := make([]byte, 2048)
+	var message Protocol.Message
+	var client clientConnection
+	for {
+		size, err := conn.Read(request)
+		if err != nil {
+			printInfoMessage(fmt.Sprintf("'%s' disconnected", client.Name))
+			return
+		}
+		err = json.Unmarshal(request[:size], &message)
+
+		printChatMessage(message.Message, client.Name, false)
 	}
 }
 
@@ -50,11 +76,11 @@ func userMessageRPLoop(messages chan string) {
 // all the connected clients. The messages from the user is received through `userMessages`
 // and `connections` contains all the active connections to outgoing clients
 func handleBroadcast(clientId uuid.UUID, userMessages chan string, connections ConnectionMap) {
-	for true {
+	for {
 		msg := <- userMessages
 		message, _ := Protocol.NewMessage(clientId, msg).Serialize()
 		for _, conn := range connections {
-			_, _ = conn.Write(message)
+			_, _ = conn.Conn.Write(message)
 		}
 	}
 }
@@ -63,28 +89,33 @@ func handleBroadcast(clientId uuid.UUID, userMessages chan string, connections C
 // the connected clients is received from the name server through `subscription` and the active
 // connections will be stored in `connections`.
 func manageClientConnections(subscription chan ClientMap, connections ConnectionMap) {
-	for true {
+	for {
 		clients := <-subscription
 		for id, client := range clients {
-			if connections[id] == nil {
+			if connections[id] != nil {
 				continue
 			}
 
 			ip := client.Ip().String() + ":" + strconv.FormatUint(uint64(client.Port()), 10)
 			addr, err := net.ResolveTCPAddr("tcp4", ip)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "unable to resolve tcp address: %v\n", err)
+				printErrorMessage(fmt.Sprintf("unable to resolve tcp address: %v\n", err))
 				continue
 			}
 
 			conn, err := net.DialTCP("tcp", nil, addr)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "unable to establish connection: %v\n", err)
+				printErrorMessage(fmt.Sprintf("unable to establish connection: %v\n", err))
 				continue
 			}
 
-			fmt.Printf("[%v] client '%s' connected", time.Now(), client.Name())
-			connections[id] = conn
+			printInfoMessage(fmt.Sprintf("client '%s' connected", client.Name()))
+
+			connection := clientConnection{
+				Name: client.Name(),
+				Conn: conn,
+			}
+			connections[id] = &connection
 		}
 	}
 }
