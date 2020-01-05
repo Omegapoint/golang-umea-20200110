@@ -41,21 +41,26 @@ func writePrompt()  {
 	fmt.Print("Say something: ")
 }
 
+// printInfoMessage prints a given message as an 'info'-type message
 func printInfoMessage(msg string) {
 	printFunction(func() {
 		fmt.Printf("\033[0;37m[%v] \033[1minfo:\033[0m %s\n", time.Now().Format("2006-01-02 15:04:05"), msg)
 	})
 }
 
+// printErrorMessage prints a given message as an 'error'-type message
 func printErrorMessage(msg string) {
 	printFunction(func() {
 		fmt.Fprintf(os.Stderr, "\033[0;37m[%v] \033[0;31m\033[1merror:\033[0m\033[0m %s\n", time.Now().Format("2006-01-02 15:04:05"), msg)
 	})
 }
 
+// printChatMessage prints a given message `msg` as a chat message. The `user` parameter will be written
+// as the users name, together with the message. Could i.e. be 'me' for the local client. If `fromLocal`
+// true, the color of the name will be different from when the parameter is false.
 func printChatMessage(msg string, user string, fromLocal bool) {
 	printLocal := func() { fmt.Printf("\033[0;37m[%v]\033[0m \033[0;31m%s\033[0m: %s\n", time.Now().Format("2006-01-02 15:04:05"), user, msg) }
-	printReceived := func() { fmt.Printf("\033[0;37m[%v]\033[0m \033[1;35m%s\033[0m: %s\n", time.Now().Format("2006-01-02 15:04:05"), user, msg) }
+	printReceived := func() { fmt.Printf("\033[0;37m[%v]\033[0m \033[0;34m%s\033[0m: %s\n", time.Now().Format("2006-01-02 15:04:05"), user, msg) }
 	if fromLocal {
 		printFunction(printLocal)
 	} else {
