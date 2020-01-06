@@ -1,3 +1,4 @@
 .idea
+*.iml
 /ChatClient/ChatClient
 /NameServer/NameServer
