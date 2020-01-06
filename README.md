@@ -38,6 +38,7 @@ Vi kommer att börja med en introduktion av språket och därefter jobba med ett
   * `Eclipse` med `GoClipse`
   * `Vim` med `vim-go`
   * Jetbrains `GoLand` (tyvärr endast betald)
+  * `Idea` med `Go` plugin (endast tillgänglig i Ultimate)
 
 # Introduktion
 
